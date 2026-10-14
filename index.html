@@ -1,7 +1,163 @@
-<html>
-  <center>
-    <h1>Ops ... qualcosa è andato storto!</h1>
-    &nbsp;
-    <h1>Ci scusiamo per il disagio, il sito di <strong>Eventi Biblioteca di Livraga</strong> tornerà online presto.</h1>
-    </center>
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="color-scheme" content="light dark">
+<title>Servizio temporaneamente non disponibile</title>
+<!--
+  Pagina di manutenzione / fallback.
+  Completamente autonoma: nessuna risorsa esterna (CSS, font, immagini, JS
+  sono inline), così funziona anche quando Cloudflare la salva come
+  "custom error asset" e non rimanda il visitatore a siti esterni
+  (importante per Energy, che ha il token nell'URL).
+  Non aggiungere <meta name="referrer">: rompe le Error Pages di Cloudflare.
+-->
+<style>
+*{box-sizing:border-box}
+:root{
+  --bg:#f4f5f7;--card:#fff;--text:#1f2328;--muted:#5d6670;
+  --accent:#d97706;--accent-soft:#fef3c7;--btn:#1f2328;--btn-text:#fff;--border:#e3e6ea
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#111317;--card:#1b1e23;--text:#e8eaed;--muted:#9aa3ad;
+    --accent:#f59e0b;--accent-soft:#3a2a0c;--btn:#e8eaed;--btn-text:#111317;--border:#2b2f36
+  }
+}
+html,body{height:100%}
+body{
+  margin:0;display:flex;align-items:center;justify-content:center;padding:24px;
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  background:var(--bg);color:var(--text);line-height:1.55
+}
+main{
+  width:100%;max-width:520px;background:var(--card);border:1px solid var(--border);
+  border-radius:16px;padding:40px 32px;text-align:center;
+  box-shadow:0 10px 30px rgba(0,0,0,.06)
+}
+.icon{
+  width:84px;height:84px;margin:0 auto 20px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--accent-soft);color:var(--accent)
+}
+.icon svg{width:44px;height:44px}
+h1{font-size:1.5rem;line-height:1.25;margin:0 0 12px}
+p{margin:0 0 14px;color:var(--muted)}
+.service{color:var(--text);font-weight:600}
+.status{
+  display:inline-flex;align-items:center;gap:8px;margin:8px 0 22px;
+  font-size:.9rem;color:var(--muted)
+}
+.dot{
+  width:10px;height:10px;border-radius:50%;background:var(--accent);
+  animation:pulse 1.6s ease-in-out infinite
+}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+@media (prefers-reduced-motion:reduce){.dot{animation:none}}
+button{
+  font:inherit;font-weight:600;cursor:pointer;border:0;border-radius:10px;
+  padding:12px 22px;background:var(--btn);color:var(--btn-text)
+}
+button:hover{opacity:.88}
+button:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+footer{margin-top:26px;font-size:.8rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<main>
+  <div class="icon" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+    </svg>
+  </div>
+
+  <h1>Servizio temporaneamente non disponibile</h1>
+
+  <p>
+    <span id="service-line">Il servizio che stai cercando</span>
+    al momento non è raggiungibile per manutenzione o per un problema tecnico.
+  </p>
+  <p>Stiamo lavorando per ripristinarlo il prima possibile. Ci scusiamo per il disagio.</p>
+
+  <div class="status" role="status" aria-live="polite">
+    <span class="dot" aria-hidden="true"></span>
+    <span id="status-text">Riprova tra qualche minuto.</span>
+  </div>
+
+  <div>
+    <button type="button" id="retry">Riprova ora</button>
+  </div>
+
+  <noscript>
+    <p style="margin-top:18px">Ricarica la pagina tra qualche minuto.</p>
+  </noscript>
+
+  <footer>Non è necessario fare nulla: i tuoi dati sono al sicuro.</footer>
+</main>
+
+<script>
+(function () {
+  "use strict";
+
+  var host = location.hostname || "";
+  var onFallbackHost = /\.github\.io$/i.test(host) || location.protocol === "file:" || host === "";
+
+  // Nome leggibile del servizio, ricavato dal sottodominio.
+  var names = { eventi: "Eventi", energy: "Energy" };
+  var serviceLine = document.getElementById("service-line");
+  if (!onFallbackHost) {
+    var label = host.split(".")[0].toLowerCase();
+    serviceLine.textContent = "Il servizio ";
+    var strong = document.createElement("span");
+    strong.className = "service";
+    strong.textContent = names[label] || host;
+    serviceLine.appendChild(strong);
+  }
+
+  var statusText = document.getElementById("status-text");
+  document.getElementById("retry").addEventListener("click", function () {
+    location.reload();
+  });
+
+  // Sulla pagina GitHub Pages (anteprima) non c'è nulla da controllare.
+  if (onFallbackHost || !window.fetch) return;
+
+  // Controlla periodicamente /healthz (presente in entrambe le app) e ricarica
+  // la pagina appena il servizio torna disponibile. L'URL corrente (incluso un
+  // eventuale ?token=) viene mantenuto.
+  var INTERVAL = 30;   // secondi tra un controllo e l'altro
+  var remaining = INTERVAL;
+
+  function check() {
+    statusText.textContent = "Verifica in corso…";
+    fetch("/healthz", { cache: "no-store", credentials: "same-origin" })
+      .then(function (r) {
+        if (r.ok) {
+          statusText.textContent = "Il servizio è di nuovo disponibile, ricarico…";
+          location.reload();
+        } else {
+          schedule();
+        }
+      })
+      .catch(schedule);
+  }
+
+  function schedule() {
+    remaining = INTERVAL;
+    tick();
+  }
+
+  function tick() {
+    if (remaining <= 0) { check(); return; }
+    statusText.textContent = "Nuovo tentativo automatico tra " + remaining + " s";
+    remaining -= 1;
+    setTimeout(tick, 1000);
+  }
+
+  schedule();
+})();
+</script>
+</body>
 </html>
